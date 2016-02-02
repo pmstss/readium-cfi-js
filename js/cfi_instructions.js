@@ -1,25 +1,25 @@
 //  Copyright (c) 2014 Readium Foundation and/or its licensees. All rights reserved.
-//  
-//  Redistribution and use in source and binary forms, with or without modification, 
+//
+//  Redistribution and use in source and binary forms, with or without modification,
 //  are permitted provided that the following conditions are met:
-//  1. Redistributions of source code must retain the above copyright notice, this 
+//  1. Redistributions of source code must retain the above copyright notice, this
 //  list of conditions and the following disclaimer.
-//  2. Redistributions in binary form must reproduce the above copyright notice, 
-//  this list of conditions and the following disclaimer in the documentation and/or 
+//  2. Redistributions in binary form must reproduce the above copyright notice,
+//  this list of conditions and the following disclaimer in the documentation and/or
 //  other materials provided with the distribution.
-//  3. Neither the name of the organization nor the names of its contributors may be 
-//  used to endorse or promote products derived from this software without specific 
+//  3. Neither the name of the organization nor the names of its contributors may be
+//  used to endorse or promote products derived from this software without specific
 //  prior written permission.
 
 (function(global) {
 
 var init = function($, cfiRuntimeErrors) {
-    
+
 var obj = {
 
-// Description: This model contains the implementation for "instructions" included in the EPUB CFI domain specific language (DSL). 
-//   Lexing and parsing a CFI produces a set of executable instructions for processing a CFI (represented in the AST). 
-//   This object contains a set of functions that implement each of the executable instructions in the AST. 
+// Description: This model contains the implementation for "instructions" included in the EPUB CFI domain specific language (DSL).
+//   Lexing and parsing a CFI produces a set of executable instructions for processing a CFI (represented in the AST).
+//   This object contains a set of functions that implement each of the executable instructions in the AST.
 
     // ------------------------------------------------------------------------------------ //
     //  "PUBLIC" METHODS (THE API)                                                          //
@@ -27,34 +27,38 @@ var obj = {
 
     // Description: Follows a step
     // Rationale: The use of children() is important here, as this jQuery method returns a tree of xml nodes, EXCLUDING
-    //   CDATA and text nodes. When we index into the set of child elements, we are assuming that text nodes have been 
+    //   CDATA and text nodes. When we index into the set of child elements, we are assuming that text nodes have been
     //   excluded.
     // REFACTORING CANDIDATE: This should be called "followIndexStep"
     getNextNode : function (CFIStepValue, $currNode, classBlacklist, elementBlacklist, idBlacklist) {
 
+        //### tss: caching next node result: relying on fact, that for the same node blacklists will be the same each time
+        var cached = $currNode[0]['nodeStep' + CFIStepValue];
+        if (cached) {
+            return cached;
+        }
+
         // Find the jquery index for the current node
         var $targetNode;
         if (CFIStepValue % 2 == 0) {
-
             $targetNode = this.elementNodeStep(CFIStepValue, $currNode, classBlacklist, elementBlacklist, idBlacklist);
-        }
-        else {
-
+        } else {
             $targetNode = this.inferTargetTextNode(CFIStepValue, $currNode, classBlacklist, elementBlacklist, idBlacklist);
         }
+
+        //### tss: saving cached result as object property
+        $currNode[0]['nodeStep' + CFIStepValue] = $targetNode;
 
         return $targetNode;
     },
 
-    // Description: This instruction executes an indirection step, where a resource is retrieved using a 
+    // Description: This instruction executes an indirection step, where a resource is retrieved using a
     //   link contained on a attribute of the target element. The attribute that contains the link differs
-    //   depending on the target. 
-    // Note: Iframe indirection will (should) fail if the iframe is not from the same domain as its containing script due to 
+    //   depending on the target.
+    // Note: Iframe indirection will (should) fail if the iframe is not from the same domain as its containing script due to
     //   the cross origin security policy
     followIndirectionStep : function (CFIStepValue, $currNode, classBlacklist, elementBlacklist, idBlacklist) {
-
-        var that = this;
-        var $contentDocument; 
+        var $contentDocument;
         var $blacklistExcluded;
         var $startElement;
         var $targetNode;
@@ -80,7 +84,7 @@ var obj = {
             $targetNode = this.getNextNode(CFIStepValue, $startElement, classBlacklist, elementBlacklist, idBlacklist);
 
             // Return that shit!
-            return $targetNode; 
+            return $targetNode;
         }
 
         // TODO: Other types of indirection
@@ -99,7 +103,7 @@ var obj = {
         if ($currNode === undefined) {
 
             throw cfiRuntimeErrors.NodeTypeError($currNode, "expected a terminating node, or node list");
-        } 
+        }
         else if ($currNode.length === 0) {
 
             throw cfiRuntimeErrors.TerminusError("Text", "Text offset:" + textOffset, "no nodes found for termination condition");
@@ -109,8 +113,8 @@ var obj = {
         return $injectedElement;
     },
 
-    // Description: Checks that the id assertion for the node target matches that on 
-    //   the found node. 
+    // Description: Checks that the id assertion for the node target matches that on
+    //   the found node.
     targetIdMatchesIdAssertion : function ($foundNode, idAssertion) {
 
         if ($foundNode.attr("id") === idAssertion) {
@@ -129,7 +133,6 @@ var obj = {
 
     // Description: Step reference for xml element node. Expected that CFIStepValue is an even integer
     elementNodeStep : function (CFIStepValue, $currNode, classBlacklist, elementBlacklist, idBlacklist) {
-
         var $targetNode;
         var $blacklistExcluded;
         var numElements;
@@ -157,14 +160,13 @@ var obj = {
         return (targetIndex > numChildElements - 1) ? true : false;
     },
 
-    // Rationale: In order to inject an element into a specific position, access to the parent object 
-    //   is required. This is obtained with the jquery parent() method. An alternative would be to 
+    // Rationale: In order to inject an element into a specific position, access to the parent object
+    //   is required. This is obtained with the jquery parent() method. An alternative would be to
     //   pass in the parent with a filtered list containing only children that are part of the target text node.
     injectCFIMarkerIntoText : function ($textNodeList, textOffset, elementToInject) {
         var document = $textNodeList[0].ownerDocument;
 
         var nodeNum;
-        var currNodeLength;
         var currTextPosition = 0;
         var nodeOffset;
         var originalText;
@@ -181,7 +183,7 @@ var obj = {
                 if (currNodeMaxIndex > textOffset) {
 
                     // This node is going to be split and the components re-inserted
-                    originalText = $textNodeList[nodeNum].nodeValue;    
+                    originalText = $textNodeList[nodeNum].nodeValue;
 
                     // Before part
                     $textNodeList[nodeNum].nodeValue = originalText.slice(0, nodeOffset);
@@ -213,19 +215,19 @@ var obj = {
         throw cfiRuntimeErrors.TerminusError("Text", "Text offset:" + textOffset, "The offset exceeded the length of the text");
     },
 
-    // Rationale: In order to inject an element into a specific position, access to the parent object 
-    //   is required. This is obtained with the jquery parent() method. An alternative would be to 
+    // Rationale: In order to inject an element into a specific position, access to the parent object
+    //   is required. This is obtained with the jquery parent() method. An alternative would be to
     //   pass in the parent with a filtered list containing only children that are part of the target text node.
 
     // Description: This method finds a target text node and then injects an element into the appropriate node
-    // Rationale: The possibility that cfi marker elements have been injected into a text node at some point previous to 
+    // Rationale: The possibility that cfi marker elements have been injected into a text node at some point previous to
     //   this method being called (and thus splitting the original text node into two separate text nodes) necessitates that
     //   the set of nodes that compromised the original target text node are inferred and returned.
-    // Notes: Passed a current node. This node should have a set of elements under it. This will include at least one text node, 
-    //   element nodes (maybe), or possibly a mix. 
+    // Notes: Passed a current node. This node should have a set of elements under it. This will include at least one text node,
+    //   element nodes (maybe), or possibly a mix.
     // REFACTORING CANDIDATE: This method is pretty long (and confusing). Worth investigating to see if it can be refactored into something clearer.
     inferTargetTextNode : function (CFIStepValue, $currNode, classBlacklist, elementBlacklist, idBlacklist) {
-        
+
         var $elementsWithoutMarkers;
         var currLogicalTextNodeIndex;
         var targetLogicalTextNodeIndex;
@@ -233,8 +235,8 @@ var obj = {
         var $targetTextNodeList;
         var prevNodeWasTextNode;
 
-        // Remove any cfi marker elements from the set of elements. 
-        // Rationale: A filtering function is used, as simply using a class selector with jquery appears to 
+        // Remove any cfi marker elements from the set of elements.
+        // Rationale: A filtering function is used, as simply using a class selector with jquery appears to
         //   result in behaviour where text nodes are also filtered out, along with the class element being filtered.
         $elementsWithoutMarkers = this.applyBlacklist($currNode.contents(), classBlacklist, elementBlacklist, idBlacklist);
 
@@ -255,7 +257,7 @@ var obj = {
                         return true;
                     }
                     // Rationale: The logical text node position is only incremented once a group of text nodes (a single logical
-                    //   text node) has been passed by the loop. 
+                    //   text node) has been passed by the loop.
                     else if (prevNodeWasTextNode && (this.nodeType !== Node.TEXT_NODE)) {
                         currLogicalTextNodeIndex++;
                         prevNodeWasTextNode = false;
@@ -281,7 +283,7 @@ var obj = {
             }
         );
 
-        // The filtering above should have counted the number of "logical" text nodes; this can be used to 
+        // The filtering above should have counted the number of "logical" text nodes; this can be used to
         // detect out of range errors
         if ($targetTextNodeList.length === 0) {
             throw cfiRuntimeErrors.OutOfRangeError(targetLogicalTextNodeIndex, currLogicalTextNodeIndex, "Index out of range");
@@ -316,7 +318,7 @@ var obj = {
                 }
 
                 if (elementBlacklist) {
-                    
+
                     // For each type of element
                     $.each(elementBlacklist, function (index, value) {
 
@@ -330,7 +332,7 @@ var obj = {
                 }
 
                 if (idBlacklist) {
-                    
+
                     // For each type of element
                     $.each(idBlacklist, function (index, value) {
 
@@ -365,18 +367,18 @@ return obj;
 
 if (typeof define == 'function' && typeof define.amd == 'object') {
     console.log("RequireJS ... cfi_instructions");
-    
+
     define(['jquery', './cfi_runtime_errors'],
     function ($, cfiRuntimeErrors) {
         return init($, cfiRuntimeErrors);
     });
 } else {
     console.log("!RequireJS ... cfi_instructions");
-    
+
     if (!global["EPUBcfi"]) {
         throw new Error("EPUBcfi not initialised on global object?! (window or this context)");
     }
-    global.EPUBcfi.CFIInstructions = 
+    global.EPUBcfi.CFIInstructions =
     init($,
         {
             NodeTypeError: global.EPUBcfi.NodeTypeError,
