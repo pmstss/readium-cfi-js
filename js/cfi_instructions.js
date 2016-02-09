@@ -295,12 +295,22 @@ var obj = {
 
     applyBlacklist : function ($elements, classBlacklist, elementBlacklist, idBlacklist) {
 
+        //### tss: hardcoding new MathJax classes here to avoid duplicates on every call (too many places to fix)
+        classBlacklist = classBlacklist ? classBlacklist.slice(0) : [];
+        classBlacklist.push('MathJax_Preview');
+        classBlacklist.push('MathJax_SVG_Display');
+        classBlacklist.push('MathJax_SVG');
+
         var $filteredElements;
 
         $filteredElements = $elements.filter(
-            function () {
+            function (idx, el) {
+                //### tss: caching blacklisted flag as object property
+                if (typeof el.cacheBlacklisted !== 'undefined') {
+                    return el.cacheBlacklisted;
+                }
 
-                var $currElement = $(this);
+                var $currElement = $(el);
                 var includeInList = true;
 
                 if (classBlacklist) {
@@ -317,21 +327,26 @@ var obj = {
                     });
                 }
 
-                if (elementBlacklist) {
+                if (includeInList && elementBlacklist) {
+                    // mathjax has div that currently is not covered by class/id filters,
+                    // see https://www.dropbox.com/s/rhw8p1lkxnnxmho/readium-mathjax.png?dl=0
+                    if ($currElement[0].childElementCount === 2 && $currElement[0].children[0].id === 'MathJax_SVG_Hidden') {
+                        includeInList = false;
+                    } else {
+                        // For each type of element
+                        $.each(elementBlacklist, function (index, value) {
 
-                    // For each type of element
-                    $.each(elementBlacklist, function (index, value) {
+                            if ($currElement.is(value)) {
+                                includeInList = false;
 
-                        if ($currElement.is(value)) {
-                            includeInList = false;
-
-                            // Break this loop
-                            return false;
-                        }
-                    });
+                                // Break this loop
+                                return false;
+                            }
+                        });
+                    }
                 }
 
-                if (idBlacklist) {
+                if (includeInList && idBlacklist) {
 
                     // For each type of element
                     $.each(idBlacklist, function (index, value) {
@@ -345,6 +360,7 @@ var obj = {
                     });
                 }
 
+                el.cacheBlacklisted = includeInList;
                 return includeInList;
             }
         );
@@ -354,7 +370,7 @@ var obj = {
 };
 
 return obj;
-}
+};
 
 
 
