@@ -87,9 +87,11 @@ var init = function(cfiParser, cfiInterpreter, cfiInstructions, cfiRuntimeErrors
         },
         injectElementAtOffset : function ($textNodeList, textOffset, elementToInject) {
             return cfiInstructions.injectCFIMarkerIntoText($textNodeList, textOffset, elementToInject);
+        },
+        applyBlacklist : function ($elements, classBlacklist, elementBlacklist, idBlacklist) {
+            return cfiInstructions.applyBlacklist($elements, classBlacklist, elementBlacklist, idBlacklist);
         }
     };
-
 
     // TODO: remove global (should not be necessary in properly-configured RequireJS build!)
     // ...but we leave it here as a "legacy" mechanism to access the CFI lib functionality
