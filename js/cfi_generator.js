@@ -1,28 +1,28 @@
 //  Copyright (c) 2014 Readium Foundation and/or its licensees. All rights reserved.
-//  
-//  Redistribution and use in source and binary forms, with or without modification, 
+//
+//  Redistribution and use in source and binary forms, with or without modification,
 //  are permitted provided that the following conditions are met:
-//  1. Redistributions of source code must retain the above copyright notice, this 
+//  1. Redistributions of source code must retain the above copyright notice, this
 //  list of conditions and the following disclaimer.
-//  2. Redistributions in binary form must reproduce the above copyright notice, 
-//  this list of conditions and the following disclaimer in the documentation and/or 
+//  2. Redistributions in binary form must reproduce the above copyright notice,
+//  this list of conditions and the following disclaimer in the documentation and/or
 //  other materials provided with the distribution.
-//  3. Neither the name of the organization nor the names of its contributors may be 
-//  used to endorse or promote products derived from this software without specific 
+//  3. Neither the name of the organization nor the names of its contributors may be
+//  used to endorse or promote products derived from this software without specific
 //  prior written permission.
 
 (function(global) {
 
 var init = function($, cfiInstructions, cfiRuntimeErrors) {
-    
+
     if (typeof cfiInstructions === "undefined") {
         throw new Error("UNDEFINED?! cfiInstructions");
     }
-    
+
     if (typeof cfiRuntimeErrors === "undefined") {
         throw new Error("UNDEFINED?! cfiRuntimeErrors");
     }
-    
+
 var obj = {
 
     // ------------------------------------------------------------------------------------ //
@@ -48,7 +48,7 @@ var obj = {
         // Parent element is the same
         if ($(rangeStartElement).parent()[0] === $(rangeEndElement).parent()[0]) {
             range1OffsetStep = this.createCFITextNodeStep($(rangeStartElement), startOffset, classBlacklist, elementBlacklist, idBlacklist);
-            range2OffsetStep = this.createCFITextNodeStep($(rangeEndElement), endOffset, classBlacklist, elementBlacklist, idBlacklist);          
+            range2OffsetStep = this.createCFITextNodeStep($(rangeEndElement), endOffset, classBlacklist, elementBlacklist, idBlacklist);
             commonCFIComponent = this.createCFIElementSteps($(rangeStartElement).parent(), "html", classBlacklist, elementBlacklist, idBlacklist);
             return commonCFIComponent.substring(1, commonCFIComponent.length) + "," + range1OffsetStep + "," + range2OffsetStep;
         }
@@ -155,7 +155,7 @@ var obj = {
                 if($(rangeStartElement).parent().is(commonAncestor)){
                     range1CFI = range1OffsetStep;
                 } else {
-                    range1CFI = this.createCFIElementSteps($(rangeStartElement).parent(), commonAncestor, classBlacklist, elementBlacklist, idBlacklist) + range1OffsetStep;    
+                    range1CFI = this.createCFIElementSteps($(rangeStartElement).parent(), commonAncestor, classBlacklist, elementBlacklist, idBlacklist) + range1OffsetStep;
                 }
             }
 
@@ -169,8 +169,8 @@ var obj = {
                 if($(rangeEndElement).parent().is(commonAncestor)){
                     range2CFI = range2OffsetStep;
                 } else {
-                    range2CFI = this.createCFIElementSteps($(rangeEndElement).parent(), commonAncestor, classBlacklist, elementBlacklist, idBlacklist) + range2OffsetStep;    
-                }                
+                    range2CFI = this.createCFIElementSteps($(rangeEndElement).parent(), commonAncestor, classBlacklist, elementBlacklist, idBlacklist) + range2OffsetStep;
+                }
             }
 
             // Generate shared component
@@ -181,8 +181,8 @@ var obj = {
         }
     },
 
-    // Description: Generates a character offset CFI 
-    // Arguments: The text node that contains the offset referenced by the cfi, the offset value, the name of the 
+    // Description: Generates a character offset CFI
+    // Arguments: The text node that contains the offset referenced by the cfi, the offset value, the name of the
     //   content document that contains the text node, the package document for this EPUB.
     generateCharacterOffsetCFIComponent : function (startTextNode, characterOffset, classBlacklist, elementBlacklist, idBlacklist) {
 
@@ -212,7 +212,7 @@ var obj = {
         // Call the recursive method to create all the steps up to the head element of the content document (the "html" element)
         contentDocCFI = this.createCFIElementSteps($(startElement), "html", classBlacklist, elementBlacklist, idBlacklist);
 
-        // Remove the ! 
+        // Remove the !
         return contentDocCFI.substring(1, contentDocCFI.length);
     },
 
@@ -245,7 +245,7 @@ var obj = {
 
     generateCompleteCFI : function (packageDocumentCFIComponent, contentDocumentCFIComponent) {
 
-        return "epubcfi(" + packageDocumentCFIComponent + contentDocumentCFIComponent + ")";  
+        return "epubcfi(" + packageDocumentCFIComponent + contentDocumentCFIComponent + ")";
     },
 
     // ------------------------------------------------------------------------------------ //
@@ -253,7 +253,7 @@ var obj = {
     // ------------------------------------------------------------------------------------ //
 
     validateStartTextNode : function (startTextNode, characterOffset) {
-        
+
         // Check that the text node to start from IS a text node
         if (!startTextNode) {
             throw new cfiRuntimeErrors.NodeTypeError(startTextNode, "Cannot generate a character offset from a starting point that is not a text node");
@@ -290,7 +290,7 @@ var obj = {
     },
 
     validatePackageDocument : function (packageDocument, contentDocumentName) {
-        
+
         // Check that the package document is non-empty and contains an itemref element for the supplied idref
         if (!packageDocument) {
             throw new Error("A package document must be supplied to generate a CFI");
@@ -314,7 +314,7 @@ var obj = {
         var postAssertion;
         var postAssertionEndIndex;
 
-        // Find text node position in the set of child elements, ignoring any blacklisted elements 
+        // Find text node position in the set of child elements, ignoring any blacklisted elements
         $parentNode = $startTextNode.parent();
         $contentsExcludingMarkers = cfiInstructions.applyBlacklist($parentNode.contents(), classBlacklist, elementBlacklist, idBlacklist);
 
@@ -324,7 +324,7 @@ var obj = {
         var textNodeOnlyIndex = 0;
         var characterOffsetSinceUnsplit = 0;
         var finalCharacterOffsetInSequence = 0;
-        $.each($contentsExcludingMarkers, 
+        $.each($contentsExcludingMarkers,
             function (index) {
 
             // If this is a text node, check if it matches and return the current index
@@ -333,17 +333,17 @@ var obj = {
                 if (this.nodeType === Node.TEXT_NODE) {
                     if (this === $startTextNode[0]) {
 
-                        // Set index as the first in the adjacent sequence of text nodes, or as the index of the current node if this 
-                        //   node is a standard one sandwiched between two element nodes. 
+                        // Set index as the first in the adjacent sequence of text nodes, or as the index of the current node if this
+                        //   node is a standard one sandwiched between two element nodes.
                         if (prevNodeWasTextNode) {
                             indexOfTextNode = indexOfFirstInSequence;
                             finalCharacterOffsetInSequence = characterOffsetSinceUnsplit;
                         } else {
                             indexOfTextNode = textNodeOnlyIndex;
                         }
-                        
+
                         // Break out of .each loop
-                        return false; 
+                        return false;
                     }
 
                     // Save this index as the first in sequence of adjacent text nodes, if it is not already set by this point
@@ -385,7 +385,7 @@ var obj = {
         CFIIndex = (indexOfTextNode * 2) + 1;
 
         // TODO: text assertions are not in the grammar yet, I think, or they're just causing problems. This has
-        //   been temporarily removed. 
+        //   been temporarily removed.
 
         // Add pre- and post- text assertions
         // preAssertionStartIndex = (characterOffset - 3 >= 0) ? characterOffset - 3 : 0;
@@ -409,12 +409,12 @@ var obj = {
         var currNodePosition;
         var CFIPosition;
         var idAssertion;
-        var elementStep; 
+        var elementStep;
 
 
 
         // per https://github.com/readium/readium-cfi-js/issues/28
-        // if the currentNode is the same as top level element, we're looking at a text node 
+        // if the currentNode is the same as top level element, we're looking at a text node
         // that's a direct child of "topLevelElement" so we don't need to include it in the element step.
         if ($currNode[0] === topLevelElement) {
             return "";
@@ -422,7 +422,7 @@ var obj = {
 
         // Find position of current node in parent list
         $blacklistExcluded = cfiInstructions.applyBlacklist($currNode.parent().children(), classBlacklist, elementBlacklist, idBlacklist);
-        $.each($blacklistExcluded, 
+        $.each($blacklistExcluded,
             function (index, value) {
 
                 if (this === $currNode[0]) {
@@ -450,11 +450,11 @@ var obj = {
         //   top level element.
         $parentNode = $currNode.parent();
         if ($parentNode.is(topLevelElement) || $currNode.is(topLevelElement)) {
-            
+
             // If the top level node is a type from which an indirection step, add an indirection step character (!)
             // REFACTORING CANDIDATE: It is possible that this should be changed to: if (topLevelElement = 'package') do
             //   not return an indirection character. Every other type of top-level element may require an indirection
-            //   step to navigate to, thus requiring that ! is always prepended. 
+            //   step to navigate to, thus requiring that ! is always prepended.
             if (topLevelElement === 'html') {
                 return "!" + elementStep;
             }
@@ -478,19 +478,19 @@ return obj;
 
 
 if (typeof define == 'function' && typeof define.amd == 'object') {
-    console.log("RequireJS ... cfi_generator");
-    
+    //console.log("RequireJS ... cfi_generator");
+
     define(['jquery', './cfi_instructions', './cfi_runtime_errors'],
     function ($, cfiInstructions, cfiRuntimeErrors) {
         return init($, cfiInstructions, cfiRuntimeErrors);
     });
 } else {
-    console.log("!RequireJS ... cfi_generator");
-    
+    //console.log("!RequireJS ... cfi_generator");
+
     if (!global["EPUBcfi"]) {
         throw new Error("EPUBcfi not initialised on global object?! (window or this context)");
     }
-    global.EPUBcfi.Generator = 
+    global.EPUBcfi.Generator =
     init($,
         global.EPUBcfi.CFIInstructions,
         {
