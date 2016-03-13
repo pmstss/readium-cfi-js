@@ -145,6 +145,11 @@ var obj = {
             docRange.setEnd(rangeEndElement, endOffset);
             commonAncestor = docRange.commonAncestorContainer;
 
+            // tss: workaround to avoid invalid result cfi because of empty range1CFI
+            if (rangeStartElement === commonAncestor) {
+                rangeStartElement = rangeEndElement;
+            }
+
             if(rangeStartElement.nodeType === Node.ELEMENT_NODE){
                 this.validateStartElement(rangeStartElement);
                 range1CFI = this.createCFIElementSteps($(rangeStartElement), commonAncestor, classBlacklist, elementBlacklist, idBlacklist);
